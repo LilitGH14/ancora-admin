@@ -13,18 +13,16 @@ const Header = () => {
 
   return (
     <header className="z-400 sticky top-0 flex w-full border-b border-stroke bg-white dark:border-stroke-dark dark:bg-gray-dark">
-      <div className="flex flex-grow items-center justify-between px-4 py-5 shadow-2 md:px-5 2xl:px-10">
-        <div className="flex items-center gap-2 sm:gap-4">
+      <div className="w-full px-4 py-5 shadow-2 md:px-5 2xl:px-10">
+        <div className="w-fullitems-center flex  justify-between gap-2 sm:gap-4">
           <Link className="block flex-shrink-0" href="/">
             <Image
-              width={150}
-              height={32}
+              width={200}
+              height={60}
               src={"/images/logo/logo.png"}
               alt="Logo"
             />
           </Link>
-        </div>
-        <div className="flex w-auto w-full items-center justify-normal justify-between gap-2 2xsm:gap-4">
           <div className="p-2.5">
             <button
               onClick={logout}

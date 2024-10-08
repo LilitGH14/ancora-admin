@@ -5,8 +5,7 @@ import {
 } from "@reduxjs/toolkit";
 import { persistStore, persistReducer, Persistor } from "redux-persist";
 import createWebStorage from "redux-persist/lib/storage/createWebStorage";
-import {thunk} from "redux-thunk";
-import generalSlice from "./slices/generalSlice";
+import { thunk } from "redux-thunk";
 import authSlice from "./slices/authSlice";
 
 const storage = createWebStorage("local");
@@ -19,9 +18,8 @@ const persistConfig = {
 const persistedReducer = persistReducer(
   persistConfig,
   combineReducers({
-    general: generalSlice.reducer,
     auth: authSlice.reducer,
-  })
+  }),
 );
 
 const store = createStore(persistedReducer, applyMiddleware(thunk));

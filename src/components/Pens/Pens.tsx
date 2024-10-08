@@ -1,66 +1,75 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Modal from "../common/Modal/Modal";
-import { useDispatch } from "react-redux";
-import { useFormik } from "formik";
-import { loginUser } from "@/services/auth";
-import { setUser } from "@/redux/slices/authSlice";
-import logo from "../../../public/images/logo/logo.png";
-import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { PENS_HEADERS } from "@/constants/tablesHeaders";
-
-const packageData: any[] = [
-  {
-    id: "kbkbhb2131",
-    name: "Free package",
-    description: "hvgvg  gvgv hgvgv g v ghjvg",
-    price: 0.0,
-    category: "man",
-    invoiceDate: `Jan 13,2023`,
-    status: "Paid",
-    images: ["hjvhj"],
-    link: "hjvhvjvhjvjhvj",
-    limited_id: 2020,
-  },
-];
+import { deleteProduct, getProducts } from "@/services/products";
+import Link from "next/link";
+import NewPen from "./NewPen";
+import { ProductStatusInStock } from "@/types/product";
 
 const PensTable = () => {
-  const dispatch = useDispatch();
-  const router = useRouter();
-
-  const [openFormModal, setOpenFormModal] = useState(false);
-
-  const { handleSubmit, handleBlur, handleChange, values } = useFormik({
-    initialValues: {
-      name: "",
-      price: 0,
-    },
-    onSubmit: (values) => {
-      loginUser(values).then((res) => {
-        if (res.ResponseCode === 200) {
-          router.push("/");
-
-          dispatch(setUser(res.ResponseData));
-          localStorage.setItem("token", res.ResponseData.token);
-        }
-      });
-    },
+  const [openFormModal, setOpenFormModal] = useState<boolean>(false);
+  const [products, setProducts] = useState<any[]>([]);
+  const [selectedProduct, setSelectedProduct] = useState<any>({
+    name: "",
+    description: "",
+    price: null,
+    category: 0,
+    status: 0,
+    images: [],
+    link: "",
+    limited_id: 0,
   });
 
-  const openModal = () => {
+  const trigerModal = () => {
     setOpenFormModal((prev) => !prev);
   };
 
-  const updatePensData = (pen: any) => {};
+  const addNewPen = () => {
+    setSelectedProduct({
+      name: "",
+      description: "",
+      price: null,
+      category: 0,
+      status: 0,
+      images: [],
+      link: "",
+      limited_id: 0,
+    });
+    trigerModal();
+  };
 
-  const deletePen = (id: any) => {};
+  const updatePensData = (product: any) => {
+    setSelectedProduct(product);
+    trigerModal();
+  };
+
+  const deletePen = (id: any) => {
+    deleteProduct(id).then((res) => {
+      if (res.ResponseCode === 200) {
+        getProducts().then((productRes) => {
+          if (productRes.ResponseCode === 200) {
+            setProducts(productRes.ResponseData);
+          }
+        });
+      }
+    });
+  };
+
+  useEffect(() => {
+    !openFormModal &&
+      getProducts().then((res) => {
+        if (res.ResponseCode === 200) {
+          setProducts(res.ResponseData);
+        }
+      });
+  }, [openFormModal]);
 
   return (
     <>
       <div className="rounded-[10px] border border-stroke bg-white p-2 shadow-1 dark:border-dark-3 dark:bg-gray-dark dark:shadow-card">
         <div className="mb-8 flex justify-end">
           <button
-            onClick={openModal}
+            onClick={addNewPen}
             className="rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
           >
             Add new
@@ -72,7 +81,7 @@ const PensTable = () => {
               <tr className="bg-[#F7F9FC] text-left dark:bg-dark-2">
                 {PENS_HEADERS?.map((header) => (
                   <th
-                    className={`min-w-[${header.inpWidth}] font-small px-4 py-4 text-sm text-dark dark:text-white`}
+                    className={`min-w-[${header.inpWidth}] w-[${header.inpWidth}] max-w-[${header.inpWidth}] font-small px-4 py-4 text-sm text-dark dark:text-white`}
                     key={header.name}
                   >
                     {header.name.toUpperCase().replaceAll("_", " ")}
@@ -86,16 +95,38 @@ const PensTable = () => {
               </tr>
             </thead>
             <tbody>
-              {packageData.map((packageItem, index) => (
-                <tr key={packageItem[index]}>
+              {products?.map((packageItem, index) => (
+                <tr key={`tr-${index}`}>
                   {PENS_HEADERS?.map((header) => (
                     <td
-                      key={packageItem[header.name]}
+                      key={`td-pen-${header.name}`}
                       className={`border-[#eee] px-4 py-4 text-sm dark:border-dark-3`}
                     >
-                      <h5 className="text-dark dark:text-white">
-                        {packageItem[header.name]}
-                      </h5>
+                      {header.name !== "link" ? (
+                        <h5 className="text-dark dark:text-white">
+                          {header.name === "status" ? (
+                            <span
+                              className={`rounded-lg p-2 ${packageItem[header.name] === 0 ? " bg-green-200" : " bg-blue-100 "}`}
+                            >
+                              {ProductStatusInStock[packageItem[header.name]]}
+                            </span>
+                          ) : (
+                            packageItem[header.name]
+                          )}
+                        </h5>
+                      ) : (
+                        <Link href={packageItem[header.name]} target="_blank">
+                          <svg
+                            width="24"
+                            height="24"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fillRule="evenodd"
+                            clipRule="evenodd"
+                          >
+                            <path d="M14.851 11.923c-.179-.641-.521-1.246-1.025-1.749-1.562-1.562-4.095-1.563-5.657 0l-4.998 4.998c-1.562 1.563-1.563 4.095 0 5.657 1.562 1.563 4.096 1.561 5.656 0l3.842-3.841.333.009c.404 0 .802-.04 1.189-.117l-4.657 4.656c-.975.976-2.255 1.464-3.535 1.464-1.28 0-2.56-.488-3.535-1.464-1.952-1.951-1.952-5.12 0-7.071l4.998-4.998c.975-.976 2.256-1.464 3.536-1.464 1.279 0 2.56.488 3.535 1.464.493.493.861 1.063 1.105 1.672l-.787.784zm-5.703.147c.178.643.521 1.25 1.026 1.756 1.562 1.563 4.096 1.561 5.656 0l4.999-4.998c1.563-1.562 1.563-4.095 0-5.657-1.562-1.562-4.095-1.563-5.657 0l-3.841 3.841-.333-.009c-.404 0-.802.04-1.189.117l4.656-4.656c.975-.976 2.256-1.464 3.536-1.464 1.279 0 2.56.488 3.535 1.464 1.951 1.951 1.951 5.119 0 7.071l-4.999 4.998c-.975.976-2.255 1.464-3.535 1.464-1.28 0-2.56-.488-3.535-1.464-.494-.495-.863-1.067-1.107-1.678l.788-.785z" />
+                          </svg>
+                        </Link>
+                      )}
                     </td>
                   ))}
                   <td className="flex border-[#eee] px-4 py-4 dark:border-dark-3">
@@ -118,98 +149,8 @@ const PensTable = () => {
           </table>
         </div>
       </div>
-      <Modal isOpen={openFormModal} onClose={openModal}>
-        <form onSubmit={handleSubmit} className="w-[400px]">
-          <div className="mb-5 flex justify-center">
-            <Image src={logo} alt="Logo" />
-          </div>
-          <div className="mb-4">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Name"
-                name="name"
-                value={values.name}
-                onBlur={handleBlur}
-                onChange={handleChange}
-                className="w-full rounded-lg border border-stroke bg-transparent py-[15px] pl-6 pr-11 font-medium text-dark outline-none focus:border-primary focus-visible:shadow-none dark:border-dark-3 dark:bg-dark-2 dark:text-white dark:focus:border-primary"
-              />
-            </div>
-          </div>
-          <div className="mb-4">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Description"
-                name="name"
-                value={values.name}
-                onBlur={handleBlur}
-                onChange={handleChange}
-                className="w-full rounded-lg border border-stroke bg-transparent py-[15px] pl-6 pr-11 font-medium text-dark outline-none focus:border-primary focus-visible:shadow-none dark:border-dark-3 dark:bg-dark-2 dark:text-white dark:focus:border-primary"
-              />
-            </div>
-          </div>
-          <div className="mb-4">
-            <div className="relative">
-              <input
-                type="number"
-                placeholder="Price"
-                name="price"
-                value={values.price}
-                onBlur={handleBlur}
-                onChange={handleChange}
-                className="w-full rounded-lg border border-stroke bg-transparent py-[15px] pl-6 pr-11 font-medium text-dark outline-none focus:border-primary focus-visible:shadow-none dark:border-dark-3 dark:bg-dark-2 dark:text-white dark:focus:border-primary"
-              />
-            </div>
-          </div>
-          <div className="mb-4">
-            <div className="relative">
-              <input
-                type="number"
-                placeholder="Category"
-                name="price"
-                value={values.price}
-                onBlur={handleBlur}
-                onChange={handleChange}
-                className="w-full rounded-lg border border-stroke bg-transparent py-[15px] pl-6 pr-11 font-medium text-dark outline-none focus:border-primary focus-visible:shadow-none dark:border-dark-3 dark:bg-dark-2 dark:text-white dark:focus:border-primary"
-              />
-            </div>
-          </div>
-          <div className="mb-4">
-            <div className="relative">
-              <input
-                type="number"
-                placeholder="Limited collection id"
-                name="price"
-                value={values.price}
-                onBlur={handleBlur}
-                onChange={handleChange}
-                className="w-full rounded-lg border border-stroke bg-transparent py-[15px] pl-6 pr-11 font-medium text-dark outline-none focus:border-primary focus-visible:shadow-none dark:border-dark-3 dark:bg-dark-2 dark:text-white dark:focus:border-primary"
-              />
-            </div>
-          </div>
-          <div className="mb-4">
-            <div className="relative">
-              <input
-                type="file"
-                placeholder="Image"
-                name="name"
-                value={values.name}
-                onBlur={handleBlur}
-                onChange={handleChange}
-                className="w-full rounded-lg border border-stroke bg-transparent py-[15px] pl-6 pr-11 font-medium text-dark outline-none focus:border-primary focus-visible:shadow-none dark:border-dark-3 dark:bg-dark-2 dark:text-white dark:focus:border-primary"
-              />
-            </div>
-          </div>
-          <div className="mb-4.5">
-            <button
-              type="submit"
-              className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-primary p-4 font-medium text-white transition hover:bg-opacity-90"
-            >
-              Add
-            </button>
-          </div>
-        </form>
+      <Modal isOpen={openFormModal} onClose={trigerModal}>
+        <NewPen close={trigerModal} product={selectedProduct} />
       </Modal>
     </>
   );

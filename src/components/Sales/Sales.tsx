@@ -1,77 +1,50 @@
-const packageData: any[] = [
-  {
-    name: "Free package",
-    price: 0.0,
-    invoiceDate: `Jan 13,2023`,
-    status: "Paid",
-  },
-  {
-    name: "Standard Package",
-    price: 59.0,
-    invoiceDate: `Jan 13,2023`,
-    status: "Paid",
-  },
-  {
-    name: "Business Package",
-    price: 99.0,
-    invoiceDate: `Jan 13,2023`,
-    status: "Unpaid",
-  },
-  {
-    name: "Standard Package",
-    price: 59.0,
-    invoiceDate: `Jan 13,2023`,
-    status: "Pending",
-  },
-];
+"use client";
+import { SALES_HEADERS } from "@/constants/tablesHeaders";
+import { getSales } from "@/services/sales";
+import { useEffect, useState } from "react";
 
 const SalesTable = () => {
+  const [sales, setSales] = useState<any[]>([]);
+
+  useEffect(() => {
+    getSales().then((res) => {
+      if (res.ResponseCode === 200) {
+        setSales(res.ResponseData);
+      }
+    });
+  }, []);
+
   return (
     <div className="rounded-[10px] border border-stroke bg-white p-2 shadow-1 dark:border-dark-3 dark:bg-gray-dark dark:shadow-card">
       <div className="max-w-full overflow-x-auto">
         <table className="w-full table-auto">
           <thead>
             <tr className="bg-[#F7F9FC] text-left dark:bg-dark-2">
-              <th className="min-w-[220px] px-4 py-4 font-medium text-dark dark:text-white">
-                Package
-              </th>
-              <th className="min-w-[150px] px-4 py-4 font-medium text-dark dark:text-white">
-                Invoice date
-              </th>
-              <th className="min-w-[120px] px-4 py-4 font-medium text-dark dark:text-white">
-                Status
-              </th>
+              {SALES_HEADERS?.map((header) => (
+                <th
+                  className={`min-w-[${header.inpWidth}] w-[${header.inpWidth}] max-w-[${header.inpWidth}] font-small px-4 py-4 text-sm text-dark dark:text-white`}
+                  key={`th-sales-${header.name}`}
+                >
+                  {header.name.toUpperCase().replaceAll("_", " ")}
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody>
-            {packageData.map((packageItem, index) => (
-              <tr key={index}>
-                <td
-                  className={`border-[#eee] px-4 py-4 dark:border-dark-3 xl:pl-7.5 ${index === packageData.length - 1 ? "border-b-0" : "border-b"}`}
-                >
-                  <h5 className="text-dark dark:text-white">
-                    {packageItem.name}
-                  </h5>
-                  <p className="mt-[3px] text-body-sm font-medium">
-                    ${packageItem.price}
-                  </p>
-                </td>
-                <td
-                  className={`border-[#eee] px-4 py-4 dark:border-dark-3 ${index === packageData.length - 1 ? "border-b-0" : "border-b"}`}
-                >
-                  <p className="text-dark dark:text-white">
-                    {packageItem.invoiceDate}
-                  </p>
-                </td>
-                <td
-                  className={`border-[#eee] px-4 py-4 dark:border-dark-3 ${index === packageData.length - 1 ? "border-b-0" : "border-b"}`}
-                >
-                  <p
-                    className={`inline-flex rounded-full px-3.5 py-1 text-body-sm font-medium`}
+            {sales?.map((saleItem, index) => (
+              <tr key={`tr-sales-${saleItem[index]}`}>
+                {SALES_HEADERS?.map((header) => (
+                  <td
+                    key={`td-sales-${header.name}`}
+                    className={`border-[#eee] px-4 py-4 text-sm dark:border-dark-3`}
                   >
-                    {packageItem.status}
-                  </p>
-                </td>
+                    <h5 className="text-dark dark:text-white">
+                      {header.name === "salesDate"
+                        ? new Date(saleItem[header.name])?.toDateString()
+                        : saleItem[header.name]}
+                    </h5>
+                  </td>
+                ))}
               </tr>
             ))}
           </tbody>

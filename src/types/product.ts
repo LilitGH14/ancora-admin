@@ -6,3 +6,8 @@ export type Product = {
   sold: number;
   profit: number;
 };
+
+export enum ProductStatusInStock {
+  "On sale" = 0,
+  "Sold out" = 1,
+}

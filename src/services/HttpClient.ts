@@ -26,7 +26,7 @@ export const HttpClient = {
     url: string,
     needToken = true,
     config?: any,
-    useBase: boolean = true
+    useBase: boolean = true,
   ) => {
     setHeaders(needToken);
     return await instance
@@ -37,7 +37,7 @@ export const HttpClient = {
     url: string,
     data?: any,
     needToken = true,
-    config?: any
+    config?: any,
   ): Promise<any> => {
     setHeaders(needToken);
 
@@ -49,12 +49,19 @@ export const HttpClient = {
     url: string,
     data?: any,
     config?: any,
-    needToken = true
+    needToken = true,
   ): Promise<any> => {
     setHeaders(needToken);
     return await instance
       .patch(BASE_URL + url, data, { ...config })
       .then(onFulfilled);
+  },
+  delete: async (
+    url: string,
+    needToken = true,
+  ): Promise<any> => {
+    setHeaders(needToken);
+    return await instance.delete(BASE_URL + url).then(onFulfilled);
   },
 };
 
